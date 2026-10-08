@@ -1,0 +1,49 @@
+# Áurea — controle de finanças da casa
+#   docker compose up -d --build             → página + bot (porta 8080)
+#   docker compose --profile https up -d      → idem, com HTTPS automático (precisa de DOMINIO no .env)
+# Os dados ficam em volumes do Docker (aurea_app, aurea_bot). Backup: veja o README.
+
+services:
+  app:
+    build: ./app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      BOT_URL: http://bot:8081
+    volumes:
+      - app:/data
+    ports:
+      # Com HTTPS (perfil https), use APP_BIND=127.0.0.1 no .env para só o Caddy acessar.
+      - "${APP_BIND:-0.0.0.0}:${PORTA:-8080}:8080"
+    depends_on:
+      - bot
+
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      FINANCAS_URL: http://app:8080
+    volumes:
+      - bot:/data
+    # sem "ports": o bot só é alcançável pela rede interna, pelo app
+
+  caddy:
+    image: caddy:2.8.4
+    profiles: ["https"]
+    restart: unless-stopped
+    environment:
+      DOMINIO: ${DOMINIO:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+    depends_on:
+      - app
+
+volumes:
+  app:
+  bot:
+  caddy:

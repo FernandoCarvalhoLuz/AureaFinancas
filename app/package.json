@@ -1,0 +1,16 @@
+{
+  "name": "aurea-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Áurea — página e API do controle de finanças da casa",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "4.22.2",
+    "sqlite3": "5.1.7"
+  }
+}

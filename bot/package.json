@@ -1,0 +1,19 @@
+{
+  "name": "aurea-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Áurea — bot do WhatsApp: cobranças, leitura de faturas com IA e lançamentos pelo grupo",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "express": "5.2.1",
+    "pino": "10.3.1",
+    "qrcode": "1.5.4",
+    "qrcode-terminal": "0.12.0"
+  }
+}

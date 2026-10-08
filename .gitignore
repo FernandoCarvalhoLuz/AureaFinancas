@@ -1,0 +1,30 @@
+# Segredos e dados — nunca versionar
+.env
+.env.*
+!.env.example
+dados/
+data/
+*.db
+*.db-*
+*.sqlite
+auth/
+auth_session/
+credentials.json
+
+# Chaves
+*.key
+*.pem
+*.p12
+id_rsa*
+id_ed25519*
+
+# Dependências e lixo
+node_modules/
+npm-debug.log*
+.DS_Store
+Thumbs.db
+*.bak*
+*.tgz
+
+# Áudio pessoal de cobrança (cada instalação grava o seu)
+bot/media/*.ogg

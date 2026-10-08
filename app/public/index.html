@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0a08">
+    <title>Áurea · Finanças da casa</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f8dc92'/%3E%3Cstop offset='1' stop-color='%23a8781f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='40' height='40' rx='11' fill='%23070605'/%3E%3Ccircle cx='20' cy='20' r='13' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Crect x='13.5' y='20' width='3.4' height='7' rx='1.2' fill='url(%23g)'/%3E%3Crect x='18.3' y='16' width='3.4' height='11' rx='1.2' fill='url(%23g)'/%3E%3Crect x='23.1' y='12.5' width='3.4' height='14.5' rx='1.2' fill='url(%23g)'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/app.css">
+
+    <script>
+        // Tema antes da pintura, para não piscar
+        try { const t = localStorage.getItem('aurea.tema'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+</head>
+<body>
+    <!-- gradiente compartilhado pelos SVGs -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f8dc92"/>
+                <stop offset=".5" stop-color="#e8b94a"/>
+                <stop offset="1" stop-color="#a8781f"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <div class="app">
+        <!-- ============ Barra lateral ============ -->
+        <aside class="side">
+            <a class="brand" href="#" aria-label="Áurea">
+                <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+                    <rect width="40" height="40" rx="12" fill="#14110b"/>
+                    <g class="orb">
+                        <circle cx="20" cy="20" r="13.5" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-dasharray="70 15"/>
+                    </g>
+                    <rect class="bar" x="13.4" y="20.5" width="3.4" height="6.8" rx="1.3" fill="url(#gGold)"/>
+                    <rect class="bar" x="18.3" y="16.6" width="3.4" height="10.7" rx="1.3" fill="url(#gGold)"/>
+                    <rect class="bar" x="23.2" y="12.6" width="3.4" height="14.7" rx="1.3" fill="url(#gGold)"/>
+                </svg>
+                <span class="brand-name">Áurea<small>Finanças da casa</small></span>
+            </a>
+
+            <button class="btn btn-gold btn-novo-mes magnet" data-act="novo-mes">
+                <i class="bi bi-calendar-plus"></i> Novo mês
+            </button>
+
+            <div class="side-label"><span>Meses</span><span id="qtdMeses" class="mono"></span></div>
+            <nav class="meses" id="meses" aria-label="Meses">
+                <span class="meses-ind" id="mesesInd"></span>
+                <div id="mesesLista"></div>
+            </nav>
+
+            <div class="side-foot">
+                <div class="sync" id="sync" data-s="idle" title=""><i class="dot"></i><span>Conectando…</span></div>
+                <button class="icon-btn" data-act="tema" title="Alternar tema claro/escuro"><i class="bi bi-circle-half"></i></button>
+                <button class="icon-btn" data-act="config" title="Configurar envio por WhatsApp"><i class="bi bi-gear"></i></button>
+            </div>
+        </aside>
+
+        <!-- ============ Conteúdo ============ -->
+        <main class="main">
+            <header class="top">
+                <div id="topoTxt" class="rise">
+                    <div class="eyebrow" id="eyebrow">Lançamentos do mês</div>
+                    <h1 class="titulo-mes" id="tituloMes">—</h1>
+                    <div class="sub" id="subMes">Carregando seus dados…</div>
+                </div>
+                <div class="tools">
+                    <label class="search">
+                        <i class="bi bi-search"></i>
+                        <input id="busca" type="search" placeholder="Buscar conta, pessoa ou compra" autocomplete="off">
+                        <kbd>/</kbd>
+                    </label>
+                    <div class="seg" id="filtro" role="tablist" aria-label="Filtro">
+                        <span class="seg-ind"></span>
+                        <button class="on" data-act="filtro" data-v="todas">Todas</button>
+                        <button data-act="filtro" data-v="pendentes">Pendentes</button>
+                        <button data-act="filtro" data-v="parceladas">Parceladas</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="stage" id="stage">
+                <section class="kpis" id="kpis"></section>
+                <section id="contasSec"></section>
+                <section class="analises" id="analises"></section>
+            </div>
+        </main>
+
+        <!-- ============ Lateral direita ============ -->
+        <aside class="rail">
+            <div class="rail-sticky">
+                <section class="card" id="receberCard"></section>
+                <section class="card" id="quitandoCard"></section>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!-- ============ Gaveta: conta ============ -->
+    <dialog class="drawer" id="dlgConta"></dialog>
+
+    <!-- ============ Gaveta: pessoa ============ -->
+    <dialog class="drawer" id="dlgPessoa"></dialog>
+
+    <!-- ============ Lançamento (novo/editar) ============ -->
+    <dialog class="modal" id="dlgItem">
+        <form method="dialog" id="formItem" autocomplete="off">
+            <div class="modal-h">
+                <div>
+                    <h2 id="itemTitulo">Novo lançamento</h2>
+                    <p id="itemSub"></p>
+                </div>
+                <button type="button" class="icon-btn" data-act="fechar" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-b">
+                <div class="field">
+                    <span>Quem paga <em id="itemPessoasHint">Enter para adicionar · várias pessoas dividem o valor</em></span>
+                    <div class="chips-input" id="chipsPessoas">
+                        <input id="inPessoa" list="dlPessoas" placeholder="Nome da pessoa">
+                    </div>
+                    <div class="sugestoes" id="sugPessoas"></div>
+                </div>
+                <div class="field">
+                    <span id="lblValor">Valor</span>
+                    <input class="input money" id="inValor" inputmode="decimal" placeholder="0,00" required>
+                </div>
+                <div class="hint" id="hintDivisao" hidden></div>
+                <div class="field">
+                    <span>Descrição <em>opcional</em></span>
+                    <input class="input" id="inDesc" placeholder="Ex.: Ar-condicionado, mercado, Uber…">
+                </div>
+                <div class="row2">
+                    <div class="field">
+                        <span>Parcela atual <em>opcional</em></span>
+                        <input class="input mono" id="inParc" type="number" min="1" placeholder="1">
+                    </div>
+                    <div class="field">
+                        <span>Total de parcelas</span>
+                        <input class="input mono" id="inParcTot" type="number" min="1" placeholder="12">
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="inPago">
+                    <span><b>Já está pago</b><small>Marque se esse valor já foi acertado</small></span>
+                </label>
+            </div>
+            <div class="modal-f">
+                <button type="button" class="btn btn-ghost" data-act="fechar">Cancelar</button>
+                <button type="submit" class="btn btn-gold" id="btnSalvarItem"><i class="bi bi-check2"></i> Salvar</button>
+            </div>
+        </form>
+    </dialog>
+    <datalist id="dlPessoas"></datalist>
+
+    <!-- ============ Novo mês ============ -->
+    <dialog class="modal wide" id="dlgNovoMes"></dialog>
+
+    <!-- ============ Nova conta ============ -->
+    <dialog class="modal" id="dlgNovaConta">
+        <form method="dialog" id="formConta" autocomplete="off">
+            <div class="modal-h">
+                <div>
+                    <h2>Nova conta</h2>
+                    <p id="contaSub">Cartão, serviço ou despesa da casa.</p>
+                </div>
+                <button type="button" class="icon-btn" data-act="fechar" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-b">
+                <div class="field">
+                    <span>Nome</span>
+                    <input class="input" id="inContaNome" placeholder="Ex.: Nubank, Netflix, Condomínio" required>
+                </div>
+                <div class="field">
+                    <span>Observação <em>opcional</em></span>
+                    <input class="input" id="inContaDesc" placeholder="Ex.: vence dia 10">
+                </div>
+            </div>
+            <div class="modal-f">
+                <button type="button" class="btn btn-ghost" data-act="fechar">Cancelar</button>
+                <button type="submit" class="btn btn-gold"><i class="bi bi-plus-lg"></i> Criar conta</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ============ Envio por WhatsApp ============ -->
+    <dialog class="modal wide" id="dlgEnvio"></dialog>
+
+    <!-- ============ Importar fatura ============ -->
+    <dialog class="modal xl" id="dlgImport"></dialog>
+
+    <!-- ============ Cobrar todos ============ -->
+    <dialog class="modal wide" id="dlgLote"></dialog>
+
+    <!-- ============ Confirmação ============ -->
+    <dialog class="modal" id="dlgConfirm">
+        <div class="modal-h">
+            <div>
+                <h2 id="cfTitulo">Tem certeza?</h2>
+                <p id="cfTexto"></p>
+            </div>
+        </div>
+        <div class="modal-f">
+            <button class="btn btn-ghost" id="cfNao">Cancelar</button>
+            <button class="btn btn-gold" id="cfSim">Confirmar</button>
+        </div>
+    </dialog>
+
+    <!-- ============ Configurações ============ -->
+    <dialog class="modal" id="dlgConfig">
+        <form method="dialog" id="formConfig" autocomplete="off">
+            <div class="modal-h">
+                <div>
+                    <h2>Configurações</h2>
+                    <p>WhatsApp e preferências deste navegador.</p>
+                </div>
+                <button type="button" class="icon-btn" data-act="fechar" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-b">
+                <div class="cfg-grupo" id="cfgBot"></div>
+                <label class="switch">
+                    <input type="checkbox" id="cfgAudio">
+                    <span><b>Enviar áudio junto</b><small>Mensagem de voz logo após o texto da cobrança (arquivo media/cobranca.ogg no bot)</small></span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="cfgMotion">
+                    <span><b>Reduzir animações</b><small>Desliga efeitos de movimento e de cursor</small></span>
+                </label>
+            </div>
+            <div class="modal-f">
+                <button type="button" class="btn btn-ghost" data-act="sair"><i class="bi bi-box-arrow-right"></i> Sair</button>
+                <span class="grow"></span>
+                <button type="button" class="btn btn-ghost" data-act="fechar">Cancelar</button>
+                <button type="submit" class="btn btn-gold"><i class="bi bi-check2"></i> Salvar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ============ Login ============ -->
+    <dialog class="modal login" id="dlgLogin">
+        <form id="formLogin" autocomplete="on">
+            <div class="login-marca">
+                <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+                    <rect width="40" height="40" rx="12" fill="#14110b"/>
+                    <g class="orb"><circle cx="20" cy="20" r="13.5" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-dasharray="70 15"/></g>
+                    <rect class="bar" x="13.4" y="20.5" width="3.4" height="6.8" rx="1.3" fill="url(#gGold)"/>
+                    <rect class="bar" x="18.3" y="16.6" width="3.4" height="10.7" rx="1.3" fill="url(#gGold)"/>
+                    <rect class="bar" x="23.2" y="12.6" width="3.4" height="14.7" rx="1.3" fill="url(#gGold)"/>
+                </svg>
+                <h2>Áurea</h2>
+                <p id="loginMsg">Digite a senha desta instalação.</p>
+            </div>
+            <div class="modal-b">
+                <input type="text" name="username" value="aurea" autocomplete="username" hidden>
+                <input class="input" id="inSenha" type="password" placeholder="Senha" autocomplete="current-password" required>
+            </div>
+            <div class="modal-f">
+                <button type="submit" class="btn btn-gold btn-block" id="btnEntrar"><i class="bi bi-unlock"></i> Entrar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="assets/app.js"></script>
+</body>
+</html>

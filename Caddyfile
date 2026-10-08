@@ -1,0 +1,6 @@
+# HTTPS automático (Let's Encrypt) na frente do app. Usado pelo perfil "https" do compose.
+# Requisitos: DOMINIO no .env apontando (DNS tipo A) para o IP do servidor, e portas 80/443 abertas.
+{$DOMINIO} {
+	encode gzip
+	reverse_proxy app:8080
+}
