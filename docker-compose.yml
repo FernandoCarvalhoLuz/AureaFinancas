@@ -1,6 +1,7 @@
 # Áurea — controle de finanças da casa
 #   docker compose up -d --build             → página + bot (porta 8080)
-#   docker compose --profile https up -d      → idem, com HTTPS automático (precisa de DOMINIO no .env)
+#   docker compose --profile https up -d      → idem, com HTTPS automático (precisa de DOMINIO no .env;
+#                                               ou COMPOSE_PROFILES=https no .env para ligar sempre)
 # Os dados ficam em volumes do Docker (aurea_app, aurea_bot). Backup: veja o README.
 
 services:

@@ -44,6 +44,20 @@ function igual(a, b) {
 }
 const erro = (status, msg) => Object.assign(new Error(msg), { status });
 
+// Só scripts da própria página e da CDN do localforage (com SRI no index.html); nada inline.
+const CSP = [
+    "default-src 'self'",
+    "script-src 'self' https://cdnjs.cloudflare.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+].join('; ');
+
 // ---------- Meses ("Agosto" sem ano = ANO_BASE; a página usa a mesma regra) ----------
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const FIXAS = ['Aluguel', 'Conta de Luz', 'Conta de Internet'];
@@ -102,7 +116,14 @@ function criarApp(c = cfg) {
     if (c.proxyConfiavel) app.set('trust proxy', 1);
     app.use(express.json({ limit: '25mb' }));
     app.use((req, res, next) => {
-        res.set({ 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin', 'X-Frame-Options': 'DENY' });
+        res.set({
+            'X-Content-Type-Options': 'nosniff',
+            'Referrer-Policy': 'same-origin',
+            'X-Frame-Options': 'DENY',
+            'Content-Security-Policy': CSP,
+        });
+        // Atrás do Caddy (PROXY_CONFIAVEL=1) com HTTPS: o navegador passa a recusar o http.
+        if (req.secure) res.set('Strict-Transport-Security', 'max-age=31536000');
         next();
     });
 

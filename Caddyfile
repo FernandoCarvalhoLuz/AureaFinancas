@@ -1,5 +1,6 @@
 # HTTPS automático (Let's Encrypt) na frente do app. Usado pelo perfil "https" do compose.
-# Requisitos: DOMINIO no .env apontando (DNS tipo A) para o IP do servidor, e portas 80/443 abertas.
+# Requisitos: DOMINIO no .env apontando para o IP do servidor (DNS tipo A, ou grátis com
+# sslip.io: financas.203-0-113-10.sslip.io) e portas 80/443 abertas.
 {$DOMINIO} {
 	encode gzip
 	reverse_proxy app:8080

@@ -799,7 +799,7 @@ textarea.input { height: auto; padding: 12px 14px; resize: vertical; }
 
 .cfg-grupo { display: flex; gap: 12px; padding: 12px 14px; margin: 6px 0 4px; border-radius: 14px; background: rgba(37, 211, 102, .08); border: 1px solid rgba(37, 211, 102, .22); }
 .cfg-grupo > i { font-size: 20px; color: #25D366; }
-.cfg-grupo b { display: block; font-size: 14px; }
+.cfg-grupo > div > b { display: block; font-size: 14px; }
 .cfg-grupo small { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 .cfg-grupo code { font-family: var(--font-mono); color: var(--accent-ink); }
 .cfg-qr { display: block; width: 220px; max-width: 100%; margin-top: 10px; border-radius: 12px; border: 8px solid #fff; background: #fff; }

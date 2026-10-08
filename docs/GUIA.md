@@ -11,7 +11,7 @@ Este guia leva você do zero até tudo funcionando: a página, as cobranças pel
 4. [Configurar o `.env`](#4-configurar-o-env), com todas as variáveis explicadas
 5. [Subir e liberar o acesso](#5-subir-e-liberar-o-acesso)
 6. [Conectar o WhatsApp](#6-conectar-o-whatsapp)
-7. [HTTPS com domínio](#7-https-com-domínio-recomendado)
+7. [HTTPS, com ou sem domínio](#7-https-recomendado)
 8. [Usando cada funcionalidade](#8-usando-cada-funcionalidade)
 9. [Manutenção: backup, atualização, logs](#9-manutenção)
 10. [Problemas comuns](#10-problemas-comuns)
@@ -26,7 +26,7 @@ Este guia leva você do zero até tudo funcionando: a página, as cobranças pel
 | Servidor com Docker | ✅ Sim | A página: meses, contas, lançamentos, divisão, painéis, importar fatura colando o texto |
 | Número de WhatsApp para o bot | Opcional | Cobranças automáticas, "Cobrar todos", selo "Cobrado Nx" pelo bot |
 | Chave de IA (Gemini ou OpenAI) | Opcional (precisa do bot) | Ler fatura em PDF ou foto, lançar pelo grupo do WhatsApp (texto, áudio, foto, PDF) |
-| Domínio | Opcional (recomendado) | HTTPS (cadeado): a senha e os dados trafegam criptografados |
+| HTTPS | Recomendado (grátis, mesmo sem domínio) | Cadeado: a senha e os dados trafegam criptografados |
 
 Dá para começar só com o servidor e ir ligando o resto depois: basta preencher o `.env` e rodar `docker compose up -d` de novo.
 
@@ -116,7 +116,7 @@ A IA lê faturas em PDF ou foto e conversa no grupo do WhatsApp. **Ela só funci
 |---|---|---|
 | `PORTA` | `8080` | Porta da página no servidor. |
 | `APP_BIND` | `0.0.0.0` | Em qual interface a porta abre. Com HTTPS, use `127.0.0.1`. |
-| `DOMINIO` | (vazio) | Seu domínio, para o HTTPS (seção 7). |
+| `DOMINIO` | (vazio) | Endereço para o HTTPS (seção 7): o seu domínio ou um `sslip.io` grátis. |
 | `PROXY_CONFIAVEL` | `0` | Com HTTPS pelo Caddy, use `1`. |
 | `LOG_LEVEL` | `info` | Quanto detalhe o bot escreve no log: `info`, `warn` ou `debug`. |
 
@@ -170,31 +170,41 @@ Você pode gravar uma mensagem de voz para ir junto com cada cobrança. Veja [`b
 
 ---
 
-## 7. HTTPS com domínio (recomendado)
+## 7. HTTPS (recomendado)
 
-Sem HTTPS, a senha e os dados viajam sem criptografia entre o navegador e o servidor. Com um domínio, o Caddy cuida do certificado sozinho, de graça (Let's Encrypt).
+Sem HTTPS, a senha e os dados viajam sem criptografia entre o navegador e o servidor; num Wi-Fi público, alguém poderia capturar a senha. O Caddy (já incluído) emite e renova o certificado sozinho, de graça (Let's Encrypt). Você só precisa de um endereço que aponte para o servidor.
 
-1. No painel do seu domínio, crie um registro **DNS tipo A**, por exemplo `financas`, apontando para o IP do servidor.
-2. No `.env`:
+### Escolha o endereço
+- **Sem domínio (grátis, na hora):** use o [sslip.io](https://sslip.io), que transforma o IP em nome. Troque os pontos do IP por traços: o servidor `203.0.113.10` vira **`financas.203-0-113-10.sslip.io`**. Não precisa configurar nada além disso.
+- **Com domínio próprio:** no painel do domínio, crie um registro **DNS tipo A** (ex.: `financas`) apontando para o IP do servidor. O endereço fica `financas.seudominio.com.br`.
+
+### Ligue o HTTPS
+1. No `.env` (troque pelo seu endereço):
    ```
-   DOMINIO=financas.seudominio.com.br
+   DOMINIO=financas.203-0-113-10.sslip.io
    APP_BIND=127.0.0.1
    PROXY_CONFIAVEL=1
-   URL_PUBLICA=https://financas.seudominio.com.br
+   URL_PUBLICA=https://financas.203-0-113-10.sslip.io
+   COMPOSE_PROFILES=https
    ```
-3. Libere as portas **80 e 443** (no painel e no iptables, como na seção 5) e feche a 8080:
+   - `APP_BIND=127.0.0.1` tira a porta 8080 da internet: só o Caddy fala com a página.
+   - `PROXY_CONFIAVEL=1` faz o app confiar no Caddy para saber o IP real (trava de senha) e que a conexão é HTTPS. Com isso, o cookie de sessão sai marcado como `Secure` e o navegador passa a recusar a versão sem cadeado (HSTS). Use só junto com `APP_BIND=127.0.0.1`.
+   - `COMPOSE_PROFILES=https` liga o Caddy em todo `docker compose up`, sem precisar lembrar de nada.
+2. Libere as portas **80 e 443** (no painel da nuvem e no iptables, como na seção 5) e tire a regra da 8080:
    ```bash
    sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
    sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+   sudo iptables -D INPUT -p tcp --dport 8080 -j ACCEPT
    sudo netfilter-persistent save
    ```
-4. Suba com o perfil https:
+3. Suba de novo:
    ```bash
-   docker compose --profile https up -d --build
+   docker compose up -d --build
+   docker compose ps          # agora aparece também o "caddy"
    ```
-5. Acesse `https://financas.seudominio.com.br`. O primeiro acesso pode levar uns 30 segundos enquanto o certificado é emitido.
+4. Acesse `https://` + o seu endereço. O primeiro acesso pode levar uns 30 segundos enquanto o certificado é emitido.
 
-**Sem domínio?** Instale o [Tailscale](https://tailscale.com) no servidor e nos seus aparelhos. A página fica acessível só para você, e você pode fechar a porta 8080 para a internet.
+**Alternativa sem expor nada:** instale o [Tailscale](https://tailscale.com) no servidor e nos seus aparelhos. A página fica acessível só para você, e nenhuma porta precisa ficar aberta para a internet.
 
 ---
 
@@ -315,7 +325,7 @@ docker compose start app
 ```bash
 cd ~/aurea && git pull && docker compose up -d --build
 ```
-Se você usa HTTPS, acrescente `--profile https`. Os dados e a sessão do WhatsApp continuam.
+Os dados e a sessão do WhatsApp continuam.
 
 **Trocar a senha:** edite `APP_SENHA` e rode `docker compose up -d`. Todos os aparelhos saem.
 

@@ -36,7 +36,7 @@ Controle das contas da casa e dos cartões, com a divisão entre as pessoas: que
 | Um servidor Linux com Docker | Rodar tudo 24h | A VPS gratuita da Oracle Cloud (Always Free, ARM) sobra. Qualquer VPS com 1 GB de RAM serve. |
 | Um número de WhatsApp para o bot | Mandar cobranças e conversar no grupo | Prefira um chip só para isso: o bot fica conectado como "aparelho conectado" desse número. |
 | Uma chave do Gemini (opcional) | Ler faturas e entender os lançamentos pelo WhatsApp | [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Custa centavos por mês no uso doméstico. Sem ela, só as cobranças funcionam. |
-| Um domínio (opcional, recomendado) | HTTPS (cadeado) | Sem HTTPS, a senha trafega sem criptografia. Veja [HTTPS](#https-recomendado). |
+| HTTPS (recomendado) | Cadeado na página | Grátis, mesmo sem domínio (sslip.io). Sem HTTPS, a senha trafega sem criptografia. Veja [HTTPS](#https-recomendado). |
 
 ---
 
@@ -91,22 +91,20 @@ docker compose ps          # app e bot devem aparecer "running"/"healthy"
 
 ## HTTPS (recomendado)
 
-Com um domínio apontando para o servidor (registro DNS tipo **A** com o IP), o Caddy cria e renova o certificado sozinho.
+O Caddy (já incluído) cria e renova o certificado sozinho, de graça. **Não precisa comprar domínio:** com o [sslip.io](https://sslip.io), o IP vira um nome. O servidor `203.0.113.10` vira `financas.203-0-113-10.sslip.io`. Se tiver domínio próprio, aponte um registro DNS tipo **A** para o IP e use-o no lugar.
 
 1. No `.env`:
    ```
-   DOMINIO=financas.seudominio.com.br
+   DOMINIO=financas.203-0-113-10.sslip.io
    APP_BIND=127.0.0.1
    PROXY_CONFIAVEL=1
+   URL_PUBLICA=https://financas.203-0-113-10.sslip.io
+   COMPOSE_PROFILES=https
    ```
-2. Libere as portas **80 e 443** (painel da nuvem + iptables, como no passo 5) e feche a 8080.
-3. Suba com o perfil https:
-   ```bash
-   docker compose --profile https up -d --build
-   ```
-4. Acesse `https://financas.seudominio.com.br`.
+2. Libere as portas **80 e 443** (painel da nuvem + iptables, como no passo 5) e tire a regra da 8080.
+3. Rode `docker compose up -d --build` e acesse `https://financas.203-0-113-10.sslip.io`.
 
-Sem domínio, uma alternativa segura é o [Tailscale](https://tailscale.com): o servidor só fica acessível a partir dos seus aparelhos.
+Detalhes no [guia, seção 7](docs/GUIA.md#7-https-recomendado). Para não expor nada na internet, uma alternativa é o [Tailscale](https://tailscale.com).
 
 ---
 
@@ -143,6 +141,8 @@ Os dados e a sessão do WhatsApp continuam nos volumes.
 ---
 
 ## Segurança
+
+O modelo completo e o checklist da instalação estão em [SECURITY.md](SECURITY.md).
 
 - **Nunca suba o seu `.env`**, nem num fork: ele tem a senha e as chaves, e já está no `.gitignore`. Os seus dados ficam só nos volumes do Docker, nunca no repositório.
 - **Use uma senha forte**, com 8 caracteres ou mais. Depois de 8 erros, o login fica bloqueado por 15 minutos.

@@ -45,7 +45,16 @@ test('acesso: página é pública, dados e banco não', async () => {
   try {
     const pag = await fetch(s.base + '/');
     assert.equal(pag.status, 200);
-    assert.match(await pag.text(), /<title>/);
+    const html = await pag.text();
+    assert.match(html, /<title>/);
+    assert.match(pag.headers.get('content-security-policy') || '', /script-src 'self' https:\/\/cdnjs\.cloudflare\.com;/);
+    assert.equal(pag.headers.get('x-frame-options'), 'DENY');
+    assert.doesNotMatch(html, /<script>/, 'nenhum script inline (a CSP bloquearia)');
+    assert.doesNotMatch(html, /\son[a-z]+=["']/, 'nenhum handler inline (onclick=...)');
+    for (const m of html.matchAll(/<(?:script|link)[^>]+(?:src|href)="(https:[^"]+\.(?:js|css))"[^>]*>/g)) {
+      assert.match(m[0], /integrity="sha384-/, `${m[1]} precisa de SRI`);
+    }
+    assert.equal(pag.headers.get('strict-transport-security'), null, 'HSTS só sob HTTPS');
     for (const p of ['/financas.db', '/data/financas.db', '/../data/financas.db', '/server.js', '/package.json']) {
       assert.notEqual((await fetch(s.base + p)).status, 200, `${p} não pode ser servido`);
     }
