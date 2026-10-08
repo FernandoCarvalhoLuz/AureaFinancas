@@ -10,6 +10,8 @@ Controle das contas da casa e dos cartões, com a divisão entre as pessoas: que
 - **Lançar pelo WhatsApp.** Num grupo, você manda texto, áudio, foto ou PDF. O agente pergunta mês, conta, quem paga e parcelas, e **só lança depois do seu OK**.
 - **Projeções.** Mostra a evolução mês a mês, as parcelas já contratadas e as que estão perto de acabar.
 
+> 📘 **Primeira vez?** Siga o [Guia completo de configuração](docs/GUIA.md). Ele vai do servidor gratuito até o WhatsApp lançando gastos, passo a passo, e explica cada funcionalidade.
+
 ---
 
 ## Como funciona
@@ -48,10 +50,9 @@ sudo usermod -aG docker $USER   # depois saia e entre de novo no SSH
 
 ### 2. Baixar o projeto
 ```bash
-git clone <URL-DO-REPOSITORIO> aurea
+git clone https://github.com/FernandoCarvalhoLuz/AureaFinancas.git aurea
 cd aurea
 ```
-O repositório é privado. O GitLab vai pedir o seu usuário e um **token de acesso** (GitLab › Preferências › Tokens de acesso, permissão `read_repository`) no lugar da senha.
 
 ### 3. Configurar
 ```bash
@@ -143,7 +144,7 @@ Os dados e a sessão do WhatsApp continuam nos volumes.
 
 ## Segurança
 
-- **O repositório é privado.** Nunca suba o `.env`: ele está no `.gitignore`.
+- **Nunca suba o seu `.env`**, nem num fork: ele tem a senha e as chaves, e já está no `.gitignore`. Os seus dados ficam só nos volumes do Docker, nunca no repositório.
 - **Use uma senha forte**, com 8 caracteres ou mais. Depois de 8 erros, o login fica bloqueado por 15 minutos.
 - **O banco não é servido pela web.** Só a pasta `app/public` é pública.
 - **O bot não tem porta aberta.** Só o `app` fala com ele, usando a `CHAVE_INTERNA`.
@@ -187,6 +188,10 @@ node --env-file=.env app/server.js                                  # página em
 BOT_URL=http://127.0.0.1:8081 node --env-file=.env app/server.js    # página falando com o bot
 FINANCAS_URL=http://127.0.0.1:8080 node --env-file=.env bot/server.js
 ```
+
+## Licença
+
+[MIT](LICENSE): use, copie e adapte à vontade, mantendo o aviso de copyright.
 
 ## Créditos
 
